@@ -2,6 +2,7 @@
 {
     public class JWTConfig
     {
+        public int Id { get; set; }
         /// <summary>
         /// 發行者
         /// </summary>

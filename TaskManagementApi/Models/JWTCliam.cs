@@ -2,6 +2,7 @@
 {
     public class JWTCliam
     {
+        public int Id { get; set; }
         /// <summary>
         /// 聲明資訊-發行者
         /// </summary>
