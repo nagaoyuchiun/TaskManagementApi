@@ -9,6 +9,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using TaskManagementApi.Data;
+using System.Configuration;
+using TaskManagementApi.Models;
 
 var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
 logger.Debug("init main");
@@ -30,6 +32,7 @@ try
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(opt =>
     {
+
         // You need to import package as follow
         // using Microsoft.IdentityModel.Tokens;
         opt.TokenValidationParameters = new TokenValidationParameters
@@ -63,16 +66,19 @@ try
             #region 配置簽章驗證用金鑰
 
             // 這裡配置是用來解Http Request內Token加密
-            // 如果Secret Key跟當初建立Token所使用的Secret Key不一樣的話會導致驗證失敗
+            // 如果Secret Key跟當初建立Token所使用的Secret Key不一樣的話會導致驗證失敗            
+
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(
-                    builder.Configuration.GetSection("JWTConfig").GetValue<string>("SignKey")
-                )
-            )
+                        Encoding.UTF8.GetBytes(
+                           builder.Configuration.GetSection("JWTConfig").GetValue<string>("SignKey")
+                        )
+                    )
 
             #endregion
         };
     });
+
+    builder.Services.Configure<JWTConfig>(builder.Configuration.GetSection("JWTConfig"));
 
     builder.Logging.ClearProviders();
     builder.Host.UseNLog();
@@ -90,9 +96,10 @@ try
 
     app.UseHttpsRedirection();
 
+    app.UseAuthorization();
+
     app.MapControllers();
 
-    app.UseAuthorization();
 
     app.Run();
 

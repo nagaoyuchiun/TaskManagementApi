@@ -9,6 +9,7 @@ using TaskManagementApi.ViewModels;
 
 namespace TaskManagementApi.Controllers
 {
+    [Route("api/[controller]")]
     [ApiController]
     public class AccountController : Controller
     {
@@ -32,7 +33,6 @@ namespace TaskManagementApi.Controllers
             _context = context;
         }
 
-        [Route("api/account/get")]
         [HttpGet("{id}")]
         public ActionResult<Account> GetAccount(int id)
         {
@@ -50,7 +50,6 @@ namespace TaskManagementApi.Controllers
             return account;
         }
 
-        [Route("api/account/create")]
         [HttpPost]
         public ActionResult<Account> CreateAccount(Account account)
         {
@@ -64,9 +63,30 @@ namespace TaskManagementApi.Controllers
             return CreatedAtAction("GetAccount", new { id = account.Id }, account);
         }
 
-        [Route("api/signin")]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteAccount(int id)
+        {
+            if (_context.Account == null)
+            {
+                return NotFound();
+            }
+            var account = await _context.Account.FindAsync(id);
+            if (account == null)
+            {
+                return NotFound();
+            }
+
+            _context.Account.Remove(account);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+
+        [Route("signin")]
         [HttpPost]
-        public ActionResult<AccountResponse> SignIn(string username, string password)
+        [AllowAnonymous]
+        public ActionResult<AccountResponse> PostSignIn(string username, string password)
         {
             AccountResponse res = new AccountResponse();
             JWTCliam cliam = new JWTCliam();
@@ -130,28 +150,28 @@ namespace TaskManagementApi.Controllers
             return res;
         }
 
-        [Route("api/token/get")]
-        [HttpGet]
-        public ActionResult<AccountResponse> GetTokenInfo()
-        {
-            AccountResponse res = new AccountResponse();
+        //[HttpGet]
+        //[Authorize]
+        //public ActionResult<AccountResponse> GetTokenInfo()
+        //{
+        //    AccountResponse res = new AccountResponse();
 
-            try
-            {
-                var getIssuer = User.Claims.Where(
-                    data => data.Type == "iss"
-                ).FirstOrDefault();
+        //    try
+        //    {
+        //        var getIssuer = User.Claims.Where(
+        //            data => data.Type == "iss"
+        //        ).FirstOrDefault();
 
-                res.Status = true;
-                res.Msg = getIssuer.Value.ToString();
-                res.JwtToken = string.Empty;
-            }
-            catch (Exception ex)
-            {
-                log.LogError($"{ex.Message}\n{ex.StackTrace}");
-            }
+        //        res.Status = true;
+        //        res.Msg = getIssuer.Value.ToString();
+        //        res.JwtToken = string.Empty;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        log.LogError($"{ex.Message}\n{ex.StackTrace}");
+        //    }
 
-            return res;
-        }
+        //    return res;
+        //}
     }
 }
